@@ -1,0 +1,12 @@
+{
+  "source": "https://github.com/seyeeL/web-extract",
+  "commit": "0de036bac7cf7c194456627f427ec5bc6b571788",
+  "files": {
+    "extract.js": "b5210005c25d11255a20e9552d24f7233a0b01bb48add0be39900a8b63835479",
+    "html2md.js": "34e992d13648a5733b176a83ecfdd09dad442e5160c37c22e142a8dd05770533",
+    "site-rules.js": "7d7ac7a6a21cfc969f0974ee59a4b70ab5a9dd7112e8f908ce4cded0b57dd48c",
+    "snapshot.js": "5fa3d4c57cac9cb64fc9c2b2936a46025feffea2ec8042a96e974ffafb006809",
+    "css.js": "879d0226a30fef7e8c18e3899bae12812020e6baf2714bbb2663bef71b9702cd",
+    "styled-core.js": "0fe2b0341e4729634848fe7fa1e4f3881d222c7a8393e3ce7405bc291f679d36"
+  }
+}

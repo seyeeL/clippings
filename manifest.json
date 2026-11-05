@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "clippings",
+  "version": "0.1.0",
+  "description": "把网页存成 Markdown（只留正文）或带原站样式的单文件 HTML（多图能翻、评论在、断网也能看）。",
+  "permissions": ["activeTab", "scripting", "declarativeNetRequestWithHostAccess"],
+  "optional_host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "clippings",
+    "default_popup": "popup/popup.html",
+    "default_icon": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+  },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "web_accessible_resources": [{ "resources": ["lib/*.js"], "matches": ["<all_urls>"] }]
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>clippings</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<header class="head">
+	<img src="../icons/48.png" width="24" height="24" alt="">
+	<span class="name">clippings</span>
+</header>
+
+<section class="card">
+	<div class="thumb" id="thumb"></div>
+	<div class="card-text">
+		<div class="title" id="title">读取当前页…</div>
+		<div class="domain" id="domain"></div>
+	</div>
+</section>
+
+<div class="formats" role="radiogroup">
+	<button class="opt" id="fmt-md" role="radio" type="button"><b>Markdown</b><span>只留正文</span></button>
+	<button class="opt" id="fmt-html" role="radio" type="button"><b>HTML</b><span>保留原样式</span></button>
+</div>
+
+<label class="row" id="comments-row" hidden>
+	<span>同时存评论</span>
+	<input type="checkbox" class="switch" id="comments">
+</label>
+
+<div class="actions" id="md-actions">
+	<button class="btn ghost" id="copy-md" type="button">复制 md</button>
+	<button class="btn" id="download-md" type="button">下载 md</button>
+</div>
+<div class="actions" id="html-actions" hidden>
+	<button class="btn" id="download-html" type="button">下载 HTML</button>
+</div>
+
+<div class="result" id="result" hidden>
+	<div class="k" id="result-k"></div>
+	<div class="f" id="result-f"></div>
+</div>
+
+<script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "clippings-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "clippings 浏览器扩展：把网页存成 Markdown 或带原站样式的单文件 HTML",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "sync": "node scripts/sync-web-extract.mjs",
+    "pack": "zip -r clippings.zip manifest.json icons lib popup src -x '.*'"
+  }
+}
