@@ -1,0 +1,30 @@
+@import url('../styles/tokens.css');
+
+main { max-width: 640px; margin: 0 auto; padding: 40px 16px 64px; }
+.head { display: flex; align-items: center; gap: 10px; }
+.head img { border-radius: 7px; }
+h1 { font-size: 20px; font-weight: 650; }
+
+.block { margin-top: 28px; padding: 20px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--line); }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+h2 { font-size: 16px; font-weight: 600; }
+.note { margin-top: 8px; font-size: 13px; color: var(--gray); }
+code { font: 12.5px "SF Mono", Menlo, Consolas, monospace; padding: 1px 4px; border-radius: 4px; background: var(--fill); }
+
+#fields { margin-top: 18px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+@media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--gray); }
+.field input[type="text"], .field input[type="password"] {
+	height: 38px; padding: 0 12px; border-radius: 10px; border: 0; background: var(--fill); color: var(--ink); font-size: 14px;
+	box-shadow: inset 0 0 0 1px transparent;
+}
+.field input:focus { outline: none; box-shadow: inset 0 0 0 1.5px var(--blue); }
+#fields > .field { margin-top: 18px; }
+.radio { display: flex; align-items: center; gap: 8px; color: var(--ink); font-size: 14px; cursor: pointer; }
+.radio input { accent-color: var(--blue); margin: 0; }
+
+.actions { margin-top: 20px; display: flex; align-items: center; gap: 14px; }
+.status { font-size: 13px; color: var(--gray); overflow-wrap: anywhere; min-width: 0; }
+.status.ok { color: var(--green); }
+.status.bad { color: var(--red); }

@@ -1,5 +1,7 @@
-import { ALL_ORIGINS, buildHtml, extractMarkdown, readCard, snapshotPage } from '../src/clip.js';
+import { ALL_ORIGINS, buildHtml, extractMarkdown, mirrorMarkdownImages, readCard, snapshotPage } from '../src/clip.js';
 import { fileName, formatBytes, hostOf, markdownFile } from '../src/files.js';
+import { isOssConfigured } from '../src/oss.js';
+import { getImageHost } from '../src/settings.js';
 import { ruleFor } from '../lib/site-rules.js';
 
 const $ = (id) => document.getElementById(id);
@@ -34,6 +36,18 @@ function friendly(err) {
 		return '这个页面浏览器不让扩展读取，换个普通网页试试';
 	}
 	return message;
+}
+
+/** 抓图、传图床、抓样式表都要跨域权限。第一次在这里问，要趁这次点击的手势还在。 */
+async function ensureOrigins() {
+	return (await chrome.permissions.contains(ALL_ORIGINS)) || chrome.permissions.request(ALL_ORIGINS).catch(() => false);
+}
+
+const NO_ORIGINS = '要允许读取网站数据，才抓得到图片和样式表';
+
+/** 「3 张图传到图床，1 张没传上，留了原链接」 */
+function imageNote(uploaded, failed) {
+	return [uploaded ? `${uploaded} 张图传到图床` : '', failed ? `${failed} 张没存下来，留了原链接` : ''].filter(Boolean).join('，');
 }
 
 function download(text, type, filename) {
@@ -107,48 +121,69 @@ async function init() {
 	$('comments').addEventListener('change', () => prefs.set('comments', $('comments').checked ? '1' : '0'));
 	const withComments = () => !$('comments-row').hidden && $('comments').checked;
 
-	const markdown = async () =>
-		markdownFile(await extractMarkdown(tab.id, { withReplies: withComments() && typeof rule.replies === 'function' }));
+	// 图床在设置页配；配齐了 md 的图一律转存，HTML 按设置选转存还是塞进文件
+	const imageHost = await getImageHost();
+	const oss = isOssConfigured(imageHost) ? imageHost : null;
+
+	async function markdown(button) {
+		const article = await extractMarkdown(tab.id, { withReplies: withComments() && typeof rule.replies === 'function' });
+		let note = '';
+		if (oss) {
+			button.textContent = '转存图片中…';
+			const mirrored = await mirrorMarkdownImages(article.markdown, article.url, oss);
+			if (mirrored.errors.length) console.warn('[clippings]', mirrored.errors);
+			article.markdown = mirrored.markdown;
+			note = imageNote(mirrored.uploaded, mirrored.errors.length);
+		}
+		return { ...markdownFile(article), note };
+	}
+
+	/** md 两个按钮共用：要图床的先拿权限，再提取、转存，最后交给 done。 */
+	async function runMarkdown(button, label, done) {
+		if (oss && !(await ensureOrigins())) {
+			showResult('没存成', NO_ORIGINS, true);
+			return;
+		}
+		await busy(button, label, async () => done(await markdown(button)));
+	}
 
 	$('copy-md').addEventListener('click', (event) =>
-		busy(event.currentTarget, '复制中…', async () => {
-			const file = await markdown();
+		runMarkdown(event.currentTarget, '复制中…', async (file) => {
 			await navigator.clipboard.writeText(file.markdown);
-			showResult('已复制到剪贴板', `${file.markdown.length} 字`);
+			showResult(['已复制到剪贴板', file.note].filter(Boolean).join('　'), `${file.markdown.length} 字`);
 		}),
 	);
 
 	$('download-md').addEventListener('click', (event) =>
-		busy(event.currentTarget, '下载中…', async () => {
-			const file = await markdown();
+		runMarkdown(event.currentTarget, '下载中…', async (file) => {
 			download(file.markdown, 'text/markdown;charset=utf-8', file.filename);
-			showResult('已下载', file.filename);
+			showResult(['已下载', file.note].filter(Boolean).join('　'), file.filename);
 		}),
 	);
 
 	$('download-html').addEventListener('click', async (event) => {
 		const button = event.currentTarget;
-		// 抓样式表和图片要跨域权限。第一次在这里问，要趁这次点击的手势还在
-		const granted =
-			(await chrome.permissions.contains(ALL_ORIGINS)) || (await chrome.permissions.request(ALL_ORIGINS).catch(() => false));
-		if (!granted) {
-			showResult('没存成', '要允许读取网站数据，才抓得到样式表和图片', true);
+		if (!(await ensureOrigins())) {
+			showResult('没存成', NO_ORIGINS, true);
 			return;
 		}
+		const htmlOss = oss && oss.htmlImages === 'upload' ? oss : null;
 		const loadComments = withComments() && typeof rule.expand === 'function';
 		await busy(button, loadComments ? '正在加载评论，别关这个窗口…' : '正在保存…', async () => {
 			const snap = await snapshotPage(tab.id, { withReplies: withComments(), loadComments });
 			if (/^chrome-error:/.test(String(snap.url))) throw new Error('页面没加载成功');
 			button.textContent = '正在保存…';
-			const { html, stats, warnings } = await buildHtml(snap);
+			const { html, stats, warnings } = await buildHtml(snap, htmlOss);
 			if (warnings.length) console.warn('[clippings]', warnings);
 			const filename = fileName(snap.title, snap.url, 'html');
 			download(html, 'text/html;charset=utf-8', filename);
 			const missed = warnings.filter((w) => /^图片 /.test(w)).length;
-			const notes = [formatBytes(stats.bytes ?? 0), missed ? `${missed} 张图没存下来，留了原链接` : '', ...(snap.notes ?? [])];
+			const notes = [formatBytes(stats.bytes ?? 0), imageNote(htmlOss ? stats.saved ?? 0 : 0, missed), ...(snap.notes ?? [])];
 			showResult(`已下载　${notes.filter(Boolean).join('，')}`, filename);
 		});
 	});
 }
+
+$('settings').addEventListener('click', () => chrome.runtime.openOptionsPage());
 
 init().catch((err) => showResult('出错了', friendly(err), true));
